@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import datetime
-from os.path import join as pjoin
+from os.path import join as pjoin, splitext
 import luigi
 from ecmwfapi import ECMWFDataServer
+import rasterio
 
 
 T2M = "temperature-2metre"
@@ -64,6 +65,26 @@ def retrieve_out_fname(start_datetime, end_datetime, product):
     return out_fname
 
 
+def convert_format(fname, out_fname):
+    with rasterio.open(fname) as ds:
+        kwargs = {'count': ds.count,
+                  'height': ds.height,
+                  'width': ds.width,
+                  'driver': 'GTiff',
+                  'crs': ds.crs,
+                  'transform': ds.transform,
+                  'dtype': 'float64',
+                  'nodata': ds.nodata,
+                  'compress': 'deflate',
+                  'zlevel': 6,
+                  'predictor': 3}
+
+        with rasterio.open(out_fname, 'w', **kwargs) as outds:
+            for i in range(1, ds.count +1):
+                outds.write(ds.read(i), i)
+                outds.update_tags(i, **ds.tags(i))
+
+
 class InvariantGeoPotential(luigi.Task):
 
     output_dir = luigi.Parameter()
@@ -99,12 +120,12 @@ class TotalColumnWaterVapour(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, WV)
-        return {WV: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, WV)
-        with self.output()[WV].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -117,12 +138,12 @@ class Temperature2m(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, T2M)
-        return {T2M: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, T2M)
-        with self.output()[T2M].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -135,12 +156,12 @@ class DewPointTemperature(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, D2M)
-        return {D2M: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, D2M)
-        with self.output()[D2M].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -153,12 +174,12 @@ class SurfacePressure(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, SP)
-        return {SP: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, SP)
-        with self.output()[SP].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -171,12 +192,12 @@ class GeoPotential(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, GP)
-        return {GP: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, GP, False)
-        with self.output()[GP].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -189,12 +210,12 @@ class Temperature(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, T)
-        return {T: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, T, False)
-        with self.output()[T].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -207,12 +228,12 @@ class RelativeHumidity(luigi.Task):
 
     def output(self):
         out_fname = retrieve_out_fname(self.start_date, self.end_date, RH)
-        return {RH: luigi.LocalTarget(pjoin(self.output_dir, out_fname))}
+        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
         settings = retrieve_settings(self.start_date, self.end_date, RH, False)
-        with self.output()[RH].temporary_path() as out_fname:
+        with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
 
@@ -221,13 +242,16 @@ class ConvertFormat(luigi.Task):
 
     task = luigi.TaskParameter()
 
+    def requires(self):
+        return self.task
+
     def output(self):
-        out_fname = self.task.output().path
+        out_fname = self.input().path
         return luigi.LocalTarget(splitext(out_fname)[0] + '.tif')
 
-    def run(self)
+    def run(self):
         with self.output().temporary_path() as out_fname:
-            pass
+            convert_format(self.input().path, out_fname)
 
 
 class DownloadEcwmfData(luigi.WrapperTask):
@@ -240,15 +264,16 @@ class DownloadEcwmfData(luigi.WrapperTask):
     def requires(self):
         dates = self.year_month.dates()
         args = [dates[0], dates[-1], self.output_dir]
-        reqs = {T2M: Temperature2m(*args),
-                D2M: DewPointTemperature(*args),
-                SP: SurfacePressure(*args),
-                GP: GeoPotential(*args),
-                T: Temperature(*args),
-                RH: RelativeHumidity(*args),
-                WV: TotalColumnWaterVapour(*args)}
+        reqs = {T2M: ConvertFormat(Temperature2m(*args)),
+                D2M: ConvertFormat(DewPointTemperature(*args)),
+                SP: ConvertFormat(SurfacePressure(*args)),
+                GP: ConvertFormat(GeoPotential(*args)),
+                T: ConvertFormat(Temperature(*args)),
+                RH: ConvertFormat(RelativeHumidity(*args)),
+                WV: ConvertFormat(TotalColumnWaterVapour(*args))}
 
         return reqs
+
 
 if __name__ == "__main__":
     luigi.run()
