@@ -217,6 +217,19 @@ class RelativeHumidity(luigi.Task):
             server.retrieve(settings)
 
 
+class ConvertFormat(luigi.Task):
+
+    task = luigi.TaskParameter()
+
+    def output(self):
+        out_fname = self.task.output().path
+        return luigi.LocalTarget(splitext(out_fname)[0] + '.tif')
+
+    def run(self)
+        with self.output().temporary_path() as out_fname:
+            pass
+
+
 class DownloadEcwmfData(luigi.WrapperTask):
 
     """A helper task that submits specific product downloads."""
