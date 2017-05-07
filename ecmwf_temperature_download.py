@@ -253,6 +253,9 @@ class ConvertFormat(luigi.Task):
         with self.output().temporary_path() as out_fname:
             convert_format(self.input().path, out_fname)
 
+            # remove the downloaded file
+            self.input().remove()
+
 
 class DownloadEcwmfData(luigi.WrapperTask):
 
