@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import datetime
-from os.path import join as pjoin, splitext
+import os
+from os.path import join as pjoin, splitext, exists
 import luigi
 from ecmwfapi import ECMWFDataServer
 import rasterio
@@ -252,6 +253,12 @@ class ConvertFormat(luigi.Task):
     def run(self):
         with self.output().temporary_path() as out_fname:
             convert_format(self.input().path, out_fname)
+
+            # do we have an xml for large metadata info
+            metadata_fname = out_fname + '.aux.xml'
+            if exists(metadata_fname):
+                new_fname = self.output().path + '.aux.xml'
+                os.rename(metadata_fname, new_fname)
 
         # remove the downloaded file
         self.input().remove()
