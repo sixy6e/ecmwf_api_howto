@@ -233,6 +233,7 @@ class RelativeHumidity(luigi.Task):
 class ConvertFormat(luigi.Task):
 
     task = luigi.TaskParameter()
+    day = luigi.DateParameter()
 
     def requires(self):
         return self.task
@@ -263,13 +264,13 @@ class DownloadEcwmfData(luigi.WrapperTask):
         dates = self.year.dates()
         for date in dates:
             args = [date, self.output_dir]
-            yield ConvertFormat(Temperature2m(*args))
-            yield ConvertFormat(DewPointTemperature(*args))
-            yield ConvertFormat(SurfacePressure(*args))
-            yield ConvertFormat(GeoPotential(*args))
-            yield ConvertFormat(Temperature(*args))
-            yield ConvertFormat(RelativeHumidity(*args))
-            yield ConvertFormat(TotalColumnWaterVapour(*args))
+            yield ConvertFormat(Temperature2m(*args), date)
+            yield ConvertFormat(DewPointTemperature(*args), date)
+            yield ConvertFormat(SurfacePressure(*args), date)
+            yield ConvertFormat(GeoPotential(*args), date)
+            yield ConvertFormat(Temperature(*args), date)
+            yield ConvertFormat(RelativeHumidity(*args), date)
+            yield ConvertFormat(TotalColumnWaterVapour(*args), date)
 
 
 if __name__ == "__main__":
