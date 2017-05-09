@@ -2,7 +2,7 @@
 
 import datetime
 import os
-from os.path import join as pjoin, splitext, exists
+from os.path import join as pjoin, splitext, exists, dirname, basename
 import luigi
 from ecmwfapi import ECMWFDataServer
 import rasterio
@@ -58,9 +58,9 @@ def retrieve_settings(start_date, end_date, product, surface=True):
 
 
 def retrieve_out_fname(day, product):
-    output_fmt = "{product}/{product}_{day}.grib"
+    output_fmt = "{product}/{year}/grib/{product}_{day}.grib"
     ymd = day.strftime('%Y-%m-%d')
-    out_fname = output_fmt.format(product=product, day=ymd)
+    out_fname = output_fmt.format(product=product, year=day.year, day=ymd)
     return out_fname
 
 
@@ -239,7 +239,9 @@ class ConvertFormat(luigi.Task):
         return self.task
 
     def output(self):
-        out_fname = self.input().path
+        fname = self.input().path
+        base_dir = dirname(dirname(fname))
+        out_fname = pjoin(base_dir, 'tif', basename(fname))
         return luigi.LocalTarget(splitext(out_fname)[0] + '.tif')
 
     def run(self):
