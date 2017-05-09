@@ -57,12 +57,10 @@ def retrieve_settings(start_date, end_date, product, surface=True):
     return settings.copy()
 
 
-def retrieve_out_fname(start_datetime, end_datetime, product):
-    output_fmt = "{product}/{product}_{start}_{end}.grib"
-    start_date = start_datetime.strftime('%Y-%m-%d')
-    end_date = end_datetime.strftime('%Y-%m-%d')
-    out_fname = output_fmt.format(product=product, start=start_date,
-                                  end=end_date)
+def retrieve_out_fname(day, product):
+    output_fmt = "{product}/{product}_{day}.grib"
+    ymd = day.strftime('%Y-%m-%d')
+    out_fname = output_fmt.format(product=product, day=ymd)
     return out_fname
 
 
@@ -115,17 +113,16 @@ class InvariantGeoPotential(luigi.Task):
 
 class TotalColumnWaterVapour(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, WV)
+        out_fname = retrieve_out_fname(self.day, WV)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, WV)
+        settings = retrieve_settings(self.day, self.day, WV)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -133,17 +130,16 @@ class TotalColumnWaterVapour(luigi.Task):
 
 class Temperature2m(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, T2M)
+        out_fname = retrieve_out_fname(self.day, T2M)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, T2M)
+        settings = retrieve_settings(self.day, self.day, T2M)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -151,17 +147,16 @@ class Temperature2m(luigi.Task):
 
 class DewPointTemperature(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, D2M)
+        out_fname = retrieve_out_fname(self.day, D2M)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, D2M)
+        settings = retrieve_settings(self.day, self.day, D2M)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -169,17 +164,16 @@ class DewPointTemperature(luigi.Task):
 
 class SurfacePressure(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, SP)
+        out_fname = retrieve_out_fname(self.day, SP)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, SP)
+        settings = retrieve_settings(self.day, self.day, SP)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -187,17 +181,16 @@ class SurfacePressure(luigi.Task):
 
 class GeoPotential(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, GP)
+        out_fname = retrieve_out_fname(self.day, GP)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, GP, False)
+        settings = retrieve_settings(self.day, self.day, GP, False)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -205,17 +198,16 @@ class GeoPotential(luigi.Task):
 
 class Temperature(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, T)
+        out_fname = retrieve_out_fname(self.day, T)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, T, False)
+        settings = retrieve_settings(self.day, self.day, T, False)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -223,17 +215,16 @@ class Temperature(luigi.Task):
 
 class RelativeHumidity(luigi.Task):
 
-    start_date = luigi.DateParameter(default=datetime.date(1979, 1, 1))
-    end_date = luigi.DateParameter(default=datetime.date.today())
+    day = luigi.DateParameter()
     output_dir = luigi.Parameter()
 
     def output(self):
-        out_fname = retrieve_out_fname(self.start_date, self.end_date, RH)
+        out_fname = retrieve_out_fname(self.day, RH)
         return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
-        settings = retrieve_settings(self.start_date, self.end_date, RH, False)
+        settings = retrieve_settings(self.day, self.day, RH, False)
         with self.output().temporary_path() as out_fname:
             settings["target"] = out_fname
             server.retrieve(settings)
@@ -260,29 +251,25 @@ class ConvertFormat(luigi.Task):
                 new_fname = self.output().path + '.aux.xml'
                 os.rename(metadata_fname, new_fname)
 
-        # remove the downloaded file
-        self.input().remove()
-
 
 class DownloadEcwmfData(luigi.WrapperTask):
 
     """A helper task that submits specific product downloads."""
 
-    year_month = luigi.DateIntervalParameter(batch_method=max)
+    year = luigi.DateIntervalParameter()
     output_dir = luigi.Parameter()
 
     def requires(self):
-        dates = self.year_month.dates()
-        args = [dates[0], dates[-1], self.output_dir]
-        reqs = {T2M: ConvertFormat(Temperature2m(*args)),
-                D2M: ConvertFormat(DewPointTemperature(*args)),
-                SP: ConvertFormat(SurfacePressure(*args)),
-                GP: ConvertFormat(GeoPotential(*args)),
-                T: ConvertFormat(Temperature(*args)),
-                RH: ConvertFormat(RelativeHumidity(*args)),
-                WV: ConvertFormat(TotalColumnWaterVapour(*args))}
-
-        return reqs
+        dates = self.year.dates()
+        for date in dates:
+            args = [date, self.output_dir]
+            yield ConvertFormat(Temperature2m(*args))
+            yield ConvertFormat(DewPointTemperature(*args))
+            yield ConvertFormat(SurfacePressure(*args))
+            yield ConvertFormat(GeoPotential(*args))
+            yield ConvertFormat(Temperature(*args))
+            yield ConvertFormat(RelativeHumidity(*args))
+            yield ConvertFormat(TotalColumnWaterVapour(*args))
 
 
 if __name__ == "__main__":
