@@ -40,7 +40,7 @@ def retrieve_settings(start_date, end_date, product, surface=True):
                 "stream": "oper",
                 "time": "00:00:00",
                 "step": "0",
-                "area": "-5/110/-45/160",
+                "area": "0/100/-50/160",
                 "type": "an"}
 
     settings["levtype"] = "sfc" if surface else "pl"
