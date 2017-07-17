@@ -86,10 +86,10 @@ def convert_format(fname, out_fname):
 
 class InvariantGeoPotential(luigi.Task):
 
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
-        out_fname = pjoin(self.output_dir, 'invariant',
+        out_fname = pjoin(self.outdir, 'invariant',
                           'geo-potential-dem.grib')
         return luigi.LocalTarget(out_fname)
 
@@ -114,11 +114,11 @@ class InvariantGeoPotential(luigi.Task):
 class TotalColumnWaterVapour(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, WV)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -131,11 +131,11 @@ class TotalColumnWaterVapour(luigi.Task):
 class Temperature2m(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, T2M)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -148,11 +148,11 @@ class Temperature2m(luigi.Task):
 class DewPointTemperature(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, D2M)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -165,11 +165,11 @@ class DewPointTemperature(luigi.Task):
 class SurfacePressure(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, SP)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -182,11 +182,11 @@ class SurfacePressure(luigi.Task):
 class GeoPotential(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, GP)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -199,11 +199,11 @@ class GeoPotential(luigi.Task):
 class Temperature(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, T)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -216,11 +216,11 @@ class Temperature(luigi.Task):
 class RelativeHumidity(luigi.Task):
 
     day = luigi.DateParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def output(self):
         out_fname = retrieve_out_fname(self.day, RH)
-        return luigi.LocalTarget(pjoin(self.output_dir, out_fname))
+        return luigi.LocalTarget(pjoin(self.outdir, out_fname))
 
     def run(self):
         server = ECMWFDataServer()
@@ -260,12 +260,12 @@ class DownloadEcwmfData(luigi.WrapperTask):
     """A helper task that submits specific product downloads."""
 
     year = luigi.DateIntervalParameter()
-    output_dir = luigi.Parameter()
+    outdir = luigi.Parameter()
 
     def requires(self):
         dates = self.year.dates()
         for date in dates:
-            args = [date, self.output_dir]
+            args = [date, self.outdir]
             yield ConvertFormat(Temperature2m(*args), date)
             yield ConvertFormat(DewPointTemperature(*args), date)
             yield ConvertFormat(SurfacePressure(*args), date)
