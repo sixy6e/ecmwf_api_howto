@@ -50,7 +50,7 @@ def main():
         if not exists(od):
             die(od + " doesn't exist")
 
-    # itereate over the input files  
+    # iterate over the input files  
     for in_path in args.in_paths:
         p = abspath(in_path)
         if exists(p):
